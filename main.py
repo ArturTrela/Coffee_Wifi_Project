@@ -1,30 +1,26 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from flask_bootstrap import Bootstrap5
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
-from wtforms.validators import DataRequired
+from wtforms.fields.choices import SelectField
+from wtforms.validators import DataRequired , URL
 import csv
 
-'''
-Red underlines? Install the required packages first: 
-Open the Terminal in PyCharm (bottom left). 
-
-On Windows type:
-python -m pip install -r requirements.txt
-
-On MacOS type:
-pip3 install -r requirements.txt
-
-This will install the packages from requirements.txt for this project.
-'''
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
-Bootstrap5(app)
+app.config['BOOTSTRAP_BOOTSWATCH_THEME'] = 'darkly'
+bootstrap = Bootstrap5(app)
 
 
 class CafeForm(FlaskForm):
     cafe = StringField('Cafe name', validators=[DataRequired()])
+    location_url = StringField(label = 'location url', validators=[DataRequired(), URL()])
+    open_time = StringField(label = "Open time", validators=[DataRequired()])
+    close_time = StringField(label = "Close time", validators=[DataRequired()])
+    coffee_rating = SelectField('Coffee rating ', choices=[('✘', '✘'), ('☕️', '☕️'), ('☕️☕️', '☕️☕️'),('☕️☕️☕️', '☕️☕️☕️'), ('☕️☕️☕️☕️', '☕️☕️☕️☕️'), ('☕️☕️☕️☕️☕️', '☕️☕️☕️☕️☕️')], validators=[DataRequired()])
+    wifi_rating = SelectField('WiFi rating', choices=[('✘', '✘'), ('💪', '💪'), ('💪💪', '💪💪'),('💪💪💪', '💪💪💪'), ('💪💪💪💪', '💪💪💪💪'), ('💪💪💪💪💪', '💪💪💪💪💪')], validators=[DataRequired()])
+    power_outlet = SelectField('Power Outlet ', choices=[('✘', '✘'), ('🔌', '🔌'), ('🔌🔌', '🔌🔌'),( '🔌🔌🔌', '🔌🔌🔌'), ('🔌🔌🔌🔌', '🔌🔌🔌🔌'), ('🔌🔌🔌🔌🔌', '🔌🔌🔌🔌🔌')], validators=[DataRequired()])
     submit = SubmitField('Submit')
 
 # Exercise:
@@ -42,15 +38,23 @@ def home():
     return render_template("index.html")
 
 
-@app.route('/add')
+@app.route('/add', methods=['GET','POST'])
 def add_cafe():
     form = CafeForm()
-    if form.validate_on_submit():
-        print("True")
+    is_added=False
+    if request.method =="POST":
+        if form.validate_on_submit():
+            print("True")
+            with open ('cafe-data.csv','a+', encoding="utf-8", newline='') as file:
+                new_row = [form.cafe.data, form.location_url.data,form.open_time.data, form.close_time.data, form.coffee_rating.data, form.wifi_rating.data, form.power_outlet.data]
+                csv_data = csv.writer(file, delimiter=',')
+                csv_data.writerow(new_row)
+                is_added = True
+        return render_template('add.html',form=form,add_completed = is_added)
     # Exercise:
     # Make the form write a new row into cafe-data.csv
     # with   if form.validate_on_submit()
-    return render_template('add.html', form=form)
+    return render_template('add.html', form=form, add_completed = is_added)
 
 
 @app.route('/cafes')

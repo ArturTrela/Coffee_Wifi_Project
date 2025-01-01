@@ -9,13 +9,18 @@
 
     {% block styles %}
     <!-- Load Bootstrap-Flask CSS here -->
-
+    {{ bootstrap.load_css() }}
     <!-- Link to the styles.css here to apply styling to all the child templates.-->
-
+    <style>
+      a{
+      color:orange;
+      }
+    </style>
     {% endblock %}
     <title>{% block title %}{% endblock %}</title>
   </head>
   <body>
     {% block content %}{% endblock %}
+  {{ bootstrap.load_js() }}
   </body>
 </html>
